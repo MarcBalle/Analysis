@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Clustering",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/clustering.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--root_dir",
+                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact",
+                "--rel_path",
+                "ankle_fixed\\1euro_filtered"
+            ]
+        },
+        {
+            "name": "Plot centers",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/plot_centers.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--centers",
+                "C:\\Users\\marcw\\master_thesis\\100centers_kmeans.npz"
+            ]
+        }
+    ]
+}
