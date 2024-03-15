@@ -18,8 +18,8 @@
             "program": "${workspaceFolder}/clustering.py",
             "console": "integratedTerminal",
             "args": [
-                "--root_dir",
-                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact",
+                "--root",
+                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact\\vp11\\ankle_fixed\\1euro_filtered\\3d_run2_2018-05-24-14-35-56.kinect_color.npz",
                 "--rel_path",
                 "ankle_fixed\\1euro_filtered"
             ]
@@ -32,7 +32,29 @@
             "console": "integratedTerminal",
             "args": [
                 "--centers",
-                "C:\\Users\\marcw\\master_thesis\\100centers_kmeans.npz"
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\25centers_kmeans.npz",
+                "--labels",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\25centers_kmeans_labels.npz",
+                "--num_figures",
+                "5",
+                "--match_images",
+                "--video",
+                "Z:\\datasets\\driveact\\kinect_color\\vp11\\run2_2018-05-24-14-35-56.kinect_color.mp4",
+                "--skipped_frames",
+                "1000",
+                "--save_dir",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\output\\cluster_images\\25centers"
+            ]
+        },
+        {
+            "name": "Hyperparameter tuning",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/hyperparameter_tuning_kmeans.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--keypoints",
+                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact\\vp11\\ankle_fixed\\1euro_filtered\\3d_run2_2018-05-24-14-35-56.kinect_color.npz"
             ]
         }
     ]
