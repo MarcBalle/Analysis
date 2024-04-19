@@ -10,8 +10,11 @@ def video_to_frames(video):
 
     frames = []
     while cap.isOpened():
-        _, img = cap.read()
-        frames.append(img)
+        ret, img = cap.read()
+        if ret:
+            frames.append(img)
+        else:
+            break
 
     cap.release()
     cv2.destroyAllWindows()
@@ -23,7 +26,7 @@ def frames_to_labels(video_indices, labels, output_path):
     """
     Assign frames from videos to K-Means labels
 
-    :param video_indices: association between keypoints indices and video
+    :param video_indices: association between keypoints array indices and video file
     :type video_indices: dict
     :param labels: labels attribute from the KMeans class from sklearn
     :type labels: list
@@ -43,6 +46,6 @@ def frames_to_labels(video_indices, labels, output_path):
         frames = video_to_frames(video_path)
         video_labels = labels_per_video[video_path]
 
-        video_name = os.path.splitext(os.path.basename(video_path))
+        video_name, ext = os.path.splitext(os.path.basename(video_path))
         for i, (frame, label) in enumerate(zip(frames, video_labels)):
             cv2.imwrite(os.path.join(output_path, "frames", f"{label}", f"{video_name}_{i:02}.png"), frame)

@@ -15,7 +15,7 @@ import argparse
 import numpy as np
 from sklearn.cluster import KMeans
 
-from utils.utils import video_to_frames
+from utils.utils import frames_to_labels
 
 
 def parse_args():
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         # Assign keypoints with video file
         basename, ext = os.path.splitext(os.path.basename(fname))
         video = os.path.join(args.root, "videos", basename + ".mp4")
-        keypoints_to_video[video] = range(offset, n_frames)
+        keypoints_to_video[video] = range(offset, offset + n_frames)
 
         offset = offset + n_frames
 
@@ -55,6 +55,8 @@ if __name__ == "__main__":
     kmeans = KMeans(n_clusters=args.k).fit(x)
     centroids = kmeans.cluster_centers_
     labels = kmeans.labels_
+
+    frames_to_labels(keypoints_to_video, labels=labels, output_path=args.output)
 
     np.savez(os.path.join(args.output, "cluster_centers"), centers=centroids)
     np.savez(os.path.join(args.output, "labels"), labels=labels)
