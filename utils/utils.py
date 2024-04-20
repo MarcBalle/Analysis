@@ -22,7 +22,7 @@ def video_to_frames(video):
     return frames
 
 
-def frames_to_labels(video_indices, labels, output_path):
+def frames_to_labels(video_indices, labels, output_path, k):
     """
     Assign frames from videos to K-Means labels
 
@@ -38,9 +38,8 @@ def frames_to_labels(video_indices, labels, output_path):
 
     unique_labels = np.unique(labels)
 
-    os.makedirs(os.path.join(output_path, "frames"), exist_ok=True)
     for l in unique_labels:
-        os.makedirs(os.path.join(output_path, "frames", f"{l}"), exist_ok=True)
+        os.makedirs(os.path.join(output_path, f"{k}", f"{l}"), exist_ok=True)
 
     for video_path in video_indices.keys():
         frames = video_to_frames(video_path)
@@ -48,4 +47,6 @@ def frames_to_labels(video_indices, labels, output_path):
 
         video_name, ext = os.path.splitext(os.path.basename(video_path))
         for i, (frame, label) in enumerate(zip(frames, video_labels)):
-            cv2.imwrite(os.path.join(output_path, "frames", f"{label}", f"{video_name}_{i:02}.png"), frame)
+            cv2.imwrite(os.path.join(output_path, f"{k}", f"{label}", f"{video_name}_{i:02}.png"), frame)
+
+        del frames
