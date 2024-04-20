@@ -73,3 +73,6 @@ if __name__ == "__main__":
         np.savez(os.path.join(args.output, "samples"), x)
         np.savez(os.path.join(args.output, "cluster_centers"), centroids)
         np.savez(os.path.join(args.output, "labels"), labels)
+
+        del centroids
+        del labels
