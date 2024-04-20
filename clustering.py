@@ -22,7 +22,13 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=str, required=True, help="directory containing the data")
     parser.add_argument("--output", type=str, required=True, help="output directory")
-    parser.add_argument("--k", type=int, required=False, default=10, help="number of cluster in k-means")
+    parser.add_argument(
+        "--k",
+        type=int,
+        required=False,
+        default=10,
+        help="number of cluster in k-means",
+    )
 
     return parser.parse_args()
 
@@ -52,11 +58,18 @@ if __name__ == "__main__":
     for kpt in keypoints:
         x = np.concatenate((x, kpt), axis=0)
 
-    kmeans = KMeans(n_clusters=args.k).fit(x)
-    centroids = kmeans.cluster_centers_
-    labels = kmeans.labels_
+    del keypoints
 
-    frames_to_labels(keypoints_to_video, labels=labels, output_path=args.output)
+    n_centroids = np.random.randint(25, 100, (10,))  # random search
+    for k in n_centroids:
+        os.makedirs(os.path.join(args.output, f"{k}"), exist_ok=True)
 
-    np.savez(os.path.join(args.output, "cluster_centers"), centers=centroids)
-    np.savez(os.path.join(args.output, "labels"), labels=labels)
+        kmeans = KMeans(n_clusters=args.k).fit(x)
+        centroids = kmeans.cluster_centers_
+        labels = kmeans.labels_
+
+        frames_to_labels(keypoints_to_video, labels=labels, output_path=args.output, k=k)
+
+        np.savez(os.path.join(args.output, "samples"), x)
+        np.savez(os.path.join(args.output, "cluster_centers"), centroids)
+        np.savez(os.path.join(args.output, "labels"), labels)
