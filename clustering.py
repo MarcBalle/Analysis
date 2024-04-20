@@ -14,6 +14,7 @@ import argparse
 
 import numpy as np
 from sklearn.cluster import KMeans
+from tqdm import tqdm
 
 from utils.utils import frames_to_labels
 
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     del keypoints
 
     n_centroids = np.random.randint(25, 100, (10,))  # random search
-    for k in n_centroids:
+    for k in tqdm(n_centroids):
         os.makedirs(os.path.join(args.output, f"{k}"), exist_ok=True)
 
         kmeans = KMeans(n_clusters=args.k).fit(x)
