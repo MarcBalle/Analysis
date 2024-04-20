@@ -19,31 +19,28 @@
             "console": "integratedTerminal",
             "args": [
                 "--root",
-                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact\\vp11\\ankle_fixed\\1euro_filtered\\3d_run2_2018-05-24-14-35-56.kinect_color.npz",
-                "--rel_path",
-                "ankle_fixed\\1euro_filtered"
+                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact",
+                "--output",
+                ".\\output\\cluster_images\\all_frames",
+                "--k",
+                "25"
             ]
         },
         {
             "name": "Plot centers",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/plot_centers.py",
+            "program": "${workspaceFolder}/utils/plot_centroids.py",
             "console": "integratedTerminal",
             "args": [
-                "--centers",
+                "--centroids",
                 "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\25centers_kmeans.npz",
                 "--labels",
                 "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\25centers_kmeans_labels.npz",
                 "--num_figures",
                 "5",
-                "--match_images",
-                "--video",
-                "Z:\\datasets\\driveact\\kinect_color\\vp11\\run2_2018-05-24-14-35-56.kinect_color.mp4",
-                "--skipped_frames",
-                "1000",
                 "--save_dir",
-                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\output\\cluster_images\\25centers"
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\output\\cluster_images"
             ]
         },
         {
@@ -55,6 +52,25 @@
             "args": [
                 "--keypoints",
                 "Z:\\workfiles\\ballesanchezmarc\\data\\driveact\\vp11\\ankle_fixed\\1euro_filtered\\3d_run2_2018-05-24-14-35-56.kinect_color.npz"
+            ]
+        },
+        {
+            "name": "Cropping",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/utils/crop.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--video_path",
+                "Z:\\datasets\\driveact\\kinect_color\\vp5\\run1_2018-05-22-15-10-41.kinect_color.mp4",
+                "--keypoints",
+                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact\\vp5\\ankle_fixed\\1euro_filtered\\3d_run1_2018-05-22-15-10-41.kinect_color.npz",
+                "--start_time",
+                "587",
+                "--end_time",
+                "648",
+                "--out_name",
+                "eating00"
             ]
         }
     ]
