@@ -70,9 +70,9 @@ if __name__ == "__main__":
 
         frames_to_labels(keypoints_to_video, labels=labels, output_path=args.output, k=k)
 
-        np.savez(os.path.join(args.output, "samples"), x)
-        np.savez(os.path.join(args.output, "cluster_centers"), centroids)
-        np.savez(os.path.join(args.output, "labels"), labels)
+        np.savez(os.path.join(args.output, f"{k}", "samples"), x)
+        np.savez(os.path.join(args.output, f"{k}", "cluster_centers"), centroids)
+        np.savez(os.path.join(args.output, f"{k}", "labels"), labels)
 
         del centroids
         del labels
