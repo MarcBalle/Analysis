@@ -28,20 +28,20 @@ def video_to_frames(video, percentage=1.0):
     cap = cv2.VideoCapture(video)
     video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     n = int(video_length * percentage)
-    frame_ns = np.random.randint(0, video_length, (n,))
+    frame_idxs = np.random.randint(0, video_length - 1, (n,))
 
     frames = []
 
     # TODO: this approach might be ways slower than simply while cap.isOpened() and read all
-    for f in frame_ns:
-        # TODO: set the video pointer to f
-        ret, img = cap.read()
+    for f in frame_idxs:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, f)
+        _, img = cap.read()
         frames.append(img)
 
     cap.release()
     cv2.destroyAllWindows()
 
-    return frames
+    return frames, frame_idxs
 
 
 def frames_to_labels(video_indices, labels, output_path, k, percentage=0.8):
@@ -64,8 +64,8 @@ def frames_to_labels(video_indices, labels, output_path, k, percentage=0.8):
         os.makedirs(os.path.join(output_path, f"{k}", f"{l}"), exist_ok=True)
 
     for video_path in video_indices.keys():
-        frames = video_to_frames(video_path, percentage)
-        video_labels = labels_per_video[video_path]
+        frames, frame_idxs = video_to_frames(video_path, percentage)
+        video_labels = labels_per_video[video_path][frame_idxs]
 
         video_name, ext = os.path.splitext(os.path.basename(video_path))
         for i, (frame, label) in enumerate(zip(frames, video_labels)):
