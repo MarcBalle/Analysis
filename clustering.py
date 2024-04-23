@@ -65,11 +65,11 @@ if __name__ == "__main__":
     for k in tqdm(n_centroids):
         os.makedirs(os.path.join(args.output, f"{k}"), exist_ok=True)
 
-        kmeans = KMeans(n_clusters=args.k).fit(x)
+        kmeans = KMeans(n_clusters=k).fit(x)
         centroids = kmeans.cluster_centers_
         labels = kmeans.labels_
 
-        frames_to_labels(keypoints_to_video, labels=labels, output_path=args.output, k=k)
+        frames_to_labels(keypoints_to_video, labels=labels, output_path=args.output, k=k, percentage=0.2)
 
         np.savez(os.path.join(args.output, f"{k}", "samples"), x)
         np.savez(os.path.join(args.output, f"{k}", "cluster_centers"), centroids)
