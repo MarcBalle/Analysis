@@ -8,18 +8,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation, writers
 
-
-def plot_poses(axs, poses, skeleton):
-    for ax, pose in zip(axs, poses):
-        for joint in skeleton:
-            ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2])
-            ax.plot(
-                [pose[joint[0], 0], pose[joint[1], 0]],
-                [pose[joint[0], 1], pose[joint[1], 1]],
-                zs=[pose[joint[0], 2], pose[joint[1], 2]],
-            )
-            ax.view_init(azim=255)
-            # ax.set_title(f"Label {idx[i, j]}")
+from utils.utils import plot_poses, SKELETON
 
 
 def update_plot(num, axes, lines, poses, skeleton):
@@ -67,25 +56,6 @@ if __name__ == "__main__":
 
     centers = centers @ rot_x.T @ rot_y.T @ rot_z.T
 
-    skeleton = [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [0, 4],
-        [4, 5],
-        [5, 6],
-        [0, 7],
-        [7, 8],
-        [8, 9],
-        [9, 10],
-        [8, 11],
-        [11, 12],
-        [12, 13],
-        [8, 14],
-        [14, 15],
-        [15, 16],
-    ]
-
     idx = np.array(list(range(0, n_centers))).reshape((args.num_figures, centers_per_fig))
 
     # Set up formatting for the movie files
@@ -97,17 +67,19 @@ if __name__ == "__main__":
         centers_fig = centers[idx[i]]
 
         # Create a static plot
-        plot_poses(axes.flat, centers_fig, skeleton)
+        # TODO: I change the plot function. Check that works correctly
+        for ax, pose in zip(axes.flat, centers_fig):
+            plot_poses(ax, pose)
 
         # Save the plot
         plt.savefig(os.path.join(args.save_dir, f"{i:02}.png"))
 
         # Create lines for edges in each subplot
-        lines = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(skeleton))] for ax in axes.flat]
+        lines = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat]
 
         # Create the animation
         ani = FuncAnimation(
-            fig, update_plot, frames=np.arange(0, 360, 2), fargs=(axes, lines, centers_fig, skeleton), interval=50
+            fig, update_plot, frames=np.arange(0, 360, 2), fargs=(axes, lines, centers_fig, SKELETON), interval=50
         )
 
         # Save the animation as a video file
