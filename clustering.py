@@ -176,8 +176,8 @@ if __name__ == "__main__":
 
         # Assign keypoints with video file
         basename, ext = os.path.splitext(os.path.basename(fname))
-        # video = os.path.join(args.root, "videos", basename + ".mp4")
-        video = os.path.join("Z:\\workfiles\\ballesanchezmarc\\data\\driveact", "videos", basename + ".mp4")
+        video = os.path.join(args.root, "videos", basename + ".mp4")
+        # video = os.path.join("Z:\\workfiles\\ballesanchezmarc\\data\\driveact", "videos", basename + ".mp4")
         keypoints_to_video[video] = range(offset, offset + n_frames)
 
         offset = offset + n_frames
