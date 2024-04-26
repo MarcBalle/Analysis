@@ -44,13 +44,13 @@ def video_to_frames(video, percentage=1.0):
     return frames, frame_idxs
 
 
-def frames_to_labels(video_indices, labels, output_path, k, percentage=0.8):
+def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
     """
-    Assign frames from videos to K-Means labels
+    Assign frames from videos to labels
 
     :param video_indices: association between keypoints array indices and video file
     :type video_indices: dict
-    :param labels: labels attribute from the KMeans class from sklearn
+    :param labels: labels
     :type labels: list
 
     """
@@ -61,7 +61,7 @@ def frames_to_labels(video_indices, labels, output_path, k, percentage=0.8):
     unique_labels = np.unique(labels)
 
     for l in unique_labels:
-        os.makedirs(os.path.join(output_path, f"{k}", f"{l}"), exist_ok=True)
+        os.makedirs(os.path.join(output_path, f"{l}"), exist_ok=True)
 
     for video_path in video_indices.keys():
         frames, frame_idxs = video_to_frames(video_path, percentage)
@@ -69,7 +69,7 @@ def frames_to_labels(video_indices, labels, output_path, k, percentage=0.8):
 
         video_name, ext = os.path.splitext(os.path.basename(video_path))
         for i, (frame, label) in enumerate(zip(frames, video_labels)):
-            cv2.imwrite(os.path.join(output_path, f"{k}", f"{label}", f"{video_name}_{i:02}.png"), frame)
+            cv2.imwrite(os.path.join(output_path, f"{label}", f"{video_name}_{i:02}.png"), frame)
 
         del frames
 
