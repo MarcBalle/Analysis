@@ -2,6 +2,7 @@ import os
 
 import cv2
 import numpy as np
+from scipy.spatial.distance import pdist, squareform
 
 SKELETON = [
     [0, 1],
@@ -21,6 +22,14 @@ SKELETON = [
     [14, 15],
     [15, 16],
 ]
+
+angle_x = 60 * (np.pi / 180)
+angle_y = 180 * (np.pi / 180)
+angle_z = -30 * (np.pi / 180)
+
+Rx = np.array([[1, 0, 0], [0, np.cos(angle_x), -np.sin(angle_x)], [0, np.sin(angle_x), np.cos(angle_x)]])
+Ry = np.array([[np.cos(angle_y), 0, np.sin(angle_y)], [0, 1, 0], [-np.sin(angle_y), 0, np.cos(angle_y)]])
+Rz = np.array([[np.cos(angle_z), -np.sin(angle_z), 0], [np.sin(angle_z), np.cos(angle_z), 0], [0, 0, 1]])
 
 
 def video_to_frames(video, percentage=1.0):
@@ -54,9 +63,7 @@ def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
     :type labels: list
 
     """
-    labels_per_video = {}
-    for video_path in video_indices.keys():
-        labels_per_video[video_path] = labels[video_indices[video_path]]
+    labels_per_video = {video_path: labels[video_indices[video_path]] for video_path in video_indices.keys()}
 
     unique_labels = np.unique(labels)
 
@@ -74,13 +81,96 @@ def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
         del frames
 
 
-def plot_poses(ax, pose):
+def plot_poses(ax, pose, color=None, c=None, cmap=None, colorbar=False, fig=None):
     for joint in SKELETON:
-        ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2])
+        img = ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2], c=c, cmap=cmap)
         ax.plot(
             [pose[joint[0], 0], pose[joint[1], 0]],
             [pose[joint[0], 1], pose[joint[1], 1]],
             zs=[pose[joint[0], 2], pose[joint[1], 2]],
+            color=color,
         )
-        ax.view_init(azim=255)
-        # ax.set_title(f"Label {idx[i, j]}")
+        ax.view_init(azim=80)
+
+        # Only used for plotting the variances per joint
+        # if colorbar:
+        #     assert fig is not None, "fig must be provided when colorbar is True"
+        #     fig.colorbar(img)
+
+
+def max_distance_pairs(samples, labels, filter=None, viz=False):
+    """
+    Return most dissimilar samples of each class based on Euclidian distance
+
+    :param samples: all data points
+    :param labels: label per sample
+    :param filter: set of labels from where to get max distanced pairs
+    """
+    clasification = {}
+    labels_unique = np.sort(np.unique(labels))
+    filter = filter if filter else labels_unique
+
+    clasification = {label: [] for label in filter}
+
+    for kpt, label in zip(samples, labels):
+        if label in filter:
+            clasification[label].append(kpt)
+
+    # Compute distance matrix
+    pairs = {}
+    for k in clasification.keys():
+        samples = clasification[k]
+        # similarity = squareform(pdist(samples))
+        # Get the pair of poses which differ the most inside of the cluster
+        # idx = np.argmax(similarity)
+        idx = 20
+        N_k = len(samples)
+        row = idx // N_k
+        col = idx % N_k
+
+        k0 = samples[row].reshape(17, 3)
+        k1 = samples[col].reshape(17, 3)
+
+        if viz:
+            k0 -= k0[0]
+            k1 -= k1[0]
+
+            k0 = k0 @ Rx.T @ Ry.T @ Rz.T
+            k1 = k1 @ Rx.T @ Ry.T @ Rz.T
+
+        pairs[k] = (k0, k1)
+
+    return pairs
+
+
+def variance_per_joint(samples, labels, filter=None):
+    """
+    Compute variance per joint and per class
+
+    :param samples: all data points
+    :param labels: label per sample
+    """
+
+    labels_unique = np.sort(np.unique(labels))
+    filter = filter if filter else labels_unique
+
+    clasification = {label: [] for label in filter}
+
+    for kpt, label in zip(samples, labels):
+        if label in filter:
+            clasification[label].append(kpt)
+
+    covariances_per_class = {}
+    for k in clasification.keys():
+        kpts = clasification[k]
+        covs = []
+        for i in range(17):
+            joint = np.array([kpt.reshape(17, 3)[i] for kpt in kpts])
+
+            # Compute determinant of covariance matrix as a measure of general variance
+            cov_det = np.linalg.det(np.cov(joint, rowvar=False))
+            covs.append(cov_det)
+
+        covariances_per_class[k] = covs
+
+    return covariances_per_class
