@@ -5,10 +5,9 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation, writers
 
-from utils.utils import plot_poses, SKELETON
+from utils import plot_poses, max_distance_pairs, variance_per_joint, SKELETON, Rx, Ry, Rz
 
 
 def update_plot(num, axes, lines, poses, skeleton):
@@ -26,8 +25,10 @@ def update_plot(num, axes, lines, poses, skeleton):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--centroids", type=str, required=True, help="file path to npz containing centers information")
-    parser.add_argument("--labels", type=str, required=True, help="class labels assigned by the cluster")
+    parser.add_argument("--kpts", type=str, required=False, help="keypoints file")
+    parser.add_argument("--labels", type=str, required=False, help="labels file")
     parser.add_argument("--num_figures", type=int, required=True, help="number of figures to generate")
+    parser.add_argument("--centers_fig", type=int, default=5, help="center per figure")
     parser.add_argument("--save_dir", type=str, default=".", help="output directory path")
 
     return parser.parse_args()
@@ -36,46 +37,99 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    centers = np.load(args.centroids)["centers"]
-    centers = centers.reshape((-1, 17, 3))
+    centers = np.load(args.centroids)["arr_0"].reshape((-1, 17, 3))
+    if args.kpts:
+        keypoints = np.load(args.kpts)["arr_0"]
+    if args.labels:
+        labels = np.load(args.labels)["arr_0"]
 
     n_centers = centers.shape[0]
-    assert n_centers % args.num_figures == 0, "Number of figures must be multiple of the number of cluster centers"
-    centers_per_fig = int(n_centers / args.num_figures)
+    assert n_centers <= args.num_figures * args.centers_fig, "Not all center are going to be displayed"
 
-    angle_x = 60 * (np.pi / 180)
-    angle_y = 180 * (np.pi / 180)
-    angle_z = -30 * (np.pi / 180)
-
-    rot_x = np.array([[1, 0, 0], [0, np.cos(angle_x), -np.sin(angle_x)], [0, np.sin(angle_x), np.cos(angle_x)]])
-    rot_y = np.array([[np.cos(angle_y), 0, np.sin(angle_y)], [0, 1, 0], [-np.sin(angle_y), 0, np.cos(angle_y)]])
-    rot_z = np.array([[np.cos(angle_z), -np.sin(angle_z), 0], [np.sin(angle_z), np.cos(angle_z), 0], [0, 0, 1]])
+    # Pad the center with 0s to fill the last figure
+    if n_centers < args.num_figures * args.centers_fig:
+        diff = args.num_figures * args.centers_fig - n_centers
+        centers = np.pad(centers, ((0, diff), (0, 0), (0, 0)))
+        n_centers = centers.shape[0]
 
     # Hip joint is center of coordinates
     centers -= np.expand_dims(centers[:, 0, :], axis=1)
 
-    centers = centers @ rot_x.T @ rot_y.T @ rot_z.T
+    centers = centers @ Rx.T @ Ry.T @ Rz.T
 
-    idx = np.array(list(range(0, n_centers))).reshape((args.num_figures, centers_per_fig))
+    idx = np.array(list(range(0, n_centers))).reshape((args.num_figures, args.centers_fig))
 
     # Set up formatting for the movie files
     Writer = writers["ffmpeg"]
     writer = Writer(fps=15, metadata=dict(artist="Me"), bitrate=1800)
 
     for i in range(args.num_figures):
-        fig, axes = plt.subplots(1, centers_per_fig, figsize=(30, 10), subplot_kw={"projection": "3d"})
-        centers_fig = centers[idx[i]]
+        fig, axes = plt.subplots(3, args.centers_fig, figsize=(30, 10), subplot_kw={"projection": "3d"})
+        labels_fig = list(idx[i])
+        centers_fig = centers[labels_fig]
 
-        # Create a static plot
-        # TODO: I change the plot function. Check that works correctly
-        for ax, pose in zip(axes.flat, centers_fig):
-            plot_poses(ax, pose)
+        variances = variance_per_joint(keypoints, labels=labels, filter=labels_fig)
+        # Plot the centroids
+        plot_poses(axes[0, 0], centers_fig[0])
+        plot_poses(axes[0, 1], centers_fig[1])
+        plot_poses(axes[0, 2], centers_fig[2])
+        plot_poses(axes[0, 3], centers_fig[3])
+        plot_poses(axes[0, 4], centers_fig[4])
+
+        # Plot the variance per joint
+        plot_poses(
+            axes[2, 0], centers_fig[0], color="k", c=variances[labels_fig[0]], cmap="hot", colorbar=True, fig=fig
+        )
+        plot_poses(
+            axes[2, 1], centers_fig[1], color="k", c=variances[labels_fig[1]], cmap="hot", colorbar=True, fig=fig
+        )
+        plot_poses(
+            axes[2, 2], centers_fig[2], color="k", c=variances[labels_fig[2]], cmap="hot", colorbar=True, fig=fig
+        )
+        plot_poses(
+            axes[2, 3], centers_fig[3], color="k", c=variances[labels_fig[3]], cmap="hot", colorbar=True, fig=fig
+        )
+        plot_poses(
+            axes[2, 4], centers_fig[4], color="k", c=variances[labels_fig[4]], cmap="hot", colorbar=True, fig=fig
+        )
+
+        # TODO: error handling in case keypoints and labels do not exist
+        pairs = max_distance_pairs(keypoints, labels, filter=labels_fig, viz=True)
+
+        # Plot the centroids
+        plot_poses(axes[0, 0], centers_fig[0])
+        plot_poses(axes[0, 1], centers_fig[1])
+        plot_poses(axes[0, 2], centers_fig[2])
+        plot_poses(axes[0, 3], centers_fig[3])
+        plot_poses(axes[0, 4], centers_fig[4])
+
+        # Plot the most dissimilar poses
+        plot_poses(axes[1, 0], pairs[0][0], color="r")
+        plot_poses(axes[1, 0], pairs[0][1], color="b")
+        plot_poses(axes[1, 1], pairs[1][0], color="r")
+        plot_poses(axes[1, 1], pairs[1][1], color="b")
+        plot_poses(axes[1, 2], pairs[2][0], color="r")
+        plot_poses(axes[1, 2], pairs[2][1], color="b")
+        plot_poses(axes[1, 3], pairs[3][0], color="r")
+        plot_poses(axes[1, 3], pairs[3][1], color="b")
+        plot_poses(axes[1, 4], pairs[4][0], color="r")
+        plot_poses(axes[1, 4], pairs[4][1], color="b")
+
+        # Plot the variance per joint
+        plot_poses(axes[2, 0], centers_fig[0], variances[labels_fig[0]], cmap="viridis")
+        plot_poses(axes[2, 1], centers_fig[1], variances[labels_fig[1]], cmap="viridis")
+        plot_poses(axes[2, 2], centers_fig[2], variances[labels_fig[2]], cmap="viridis")
+        plot_poses(axes[2, 3], centers_fig[3], variances[labels_fig[3]], cmap="viridis")
+        plot_poses(axes[2, 4], centers_fig[4], variances[labels_fig[4]], cmap="viridis")
 
         # Save the plot
         plt.savefig(os.path.join(args.save_dir, f"{i:02}.png"))
 
         # Create lines for edges in each subplot
-        lines = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat]
+        lines_centroids = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat[:5]]
+        lines_max = [[ax.plot([], [], [], markersize=2)[0] for _ in range(2 * len(SKELETON))] for ax in axes.flat[5:10]]
+        lines_var = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat[10:]]
+        lines = lines_centroids + lines_max + lines_var
 
         # Create the animation
         ani = FuncAnimation(
