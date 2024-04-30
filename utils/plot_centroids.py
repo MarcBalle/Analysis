@@ -10,16 +10,45 @@ from matplotlib.animation import FuncAnimation, writers
 from utils import plot_poses, max_distance_pairs, variance_per_joint, SKELETON, Rx, Ry, Rz
 
 
-def update_plot(num, axes, lines, poses, skeleton):
-    for ax, line_set, pose in zip(axes.flat, lines, poses):
+def update_plot(num, axes, lines, centroids, pairs, variances, skeleton):
+    lines_cen = lines[:5]
+    lines_pairs = lines[5:10]
+    # lines_variances = lines[10:]
+
+    axes_cen = axes.flat[:5]
+    axes_pairs = axes.flat[5:10]
+    # axes_variances = axes.flat[10:]
+
+    for ax, line_set, centroid in zip(axes_cen, lines_cen, centroids):
         for line, edge in zip(line_set, skeleton):
-            line.set_data([pose[edge[0]][0], pose[edge[1]][0]], [pose[edge[0]][1], pose[edge[1]][1]])
-            line.set_3d_properties([pose[edge[0]][2], pose[edge[1]][2]])
+            line.set_data([centroid[edge[0]][0], centroid[edge[1]][0]], [centroid[edge[0]][1], centroid[edge[1]][1]])
+            line.set_3d_properties([centroid[edge[0]][2], centroid[edge[1]][2]])
         ax.view_init(azim=num)  # Change the viewing angle
-        ax.set_xlim(-0.8, 0.8)
-        ax.set_ylim(-0.8, 0.8)
-        ax.set_zlim(-0.2, 0.4)
-    return lines
+
+    for ax, line_set, pair in zip(axes_pairs, lines_pairs, pairs.values()):
+        k0, k1 = pair
+        lines0, lines1 = line_set[: len(skeleton)], line_set[len(skeleton) :]
+        for l0, l1, edge in zip(lines0, lines1, skeleton):
+            for edge in skeleton:
+                l0.set_data([k0[edge[0]][0], k0[edge[1]][0]], [k0[edge[0]][1], k0[edge[1]][1]])
+                l0.set_3d_properties([k0[edge[0]][2], k0[edge[1]][2]])
+                l0.set_color("r")
+
+                l1.set_data([k1[edge[0]][0], k1[edge[1]][0]], [k1[edge[0]][1], k1[edge[1]][1]])
+                l1.set_3d_properties([k1[edge[0]][2], k1[edge[1]][2]])
+                l1.set_color("b")
+        ax.view_init(azim=num)
+
+    # for ax, line_set, centroid in zip(axes_cen, lines_cen, centroids):
+    #     for line, edge in zip(line_set, skeleton):
+    #         line.set_data([centroid[edge[0]][0], centroid[edge[1]][0]], [centroid[edge[0]][1], centroid[edge[1]][1]])
+    #         line.set_3d_properties([centroid[edge[0]][2], centroid[edge[1]][2]])
+    #     ax.view_init(azim=num)  # Change the viewing angle
+    #     ax.set_xlim(-0.8, 0.8)
+    #     ax.set_ylim(-0.8, 0.8)
+    #     ax.set_zlim(-0.2, 0.4)
+
+    return lines_centroids + lines_pairs  # + lines_variances
 
 
 def parse_args():
@@ -69,29 +98,6 @@ if __name__ == "__main__":
         centers_fig = centers[labels_fig]
 
         variances = variance_per_joint(keypoints, labels=labels, filter=labels_fig)
-        # Plot the centroids
-        plot_poses(axes[0, 0], centers_fig[0])
-        plot_poses(axes[0, 1], centers_fig[1])
-        plot_poses(axes[0, 2], centers_fig[2])
-        plot_poses(axes[0, 3], centers_fig[3])
-        plot_poses(axes[0, 4], centers_fig[4])
-
-        # Plot the variance per joint
-        plot_poses(
-            axes[2, 0], centers_fig[0], color="k", c=variances[labels_fig[0]], cmap="hot", colorbar=True, fig=fig
-        )
-        plot_poses(
-            axes[2, 1], centers_fig[1], color="k", c=variances[labels_fig[1]], cmap="hot", colorbar=True, fig=fig
-        )
-        plot_poses(
-            axes[2, 2], centers_fig[2], color="k", c=variances[labels_fig[2]], cmap="hot", colorbar=True, fig=fig
-        )
-        plot_poses(
-            axes[2, 3], centers_fig[3], color="k", c=variances[labels_fig[3]], cmap="hot", colorbar=True, fig=fig
-        )
-        plot_poses(
-            axes[2, 4], centers_fig[4], color="k", c=variances[labels_fig[4]], cmap="hot", colorbar=True, fig=fig
-        )
 
         # TODO: error handling in case keypoints and labels do not exist
         pairs = max_distance_pairs(keypoints, labels, filter=labels_fig, viz=True)
@@ -104,23 +110,23 @@ if __name__ == "__main__":
         plot_poses(axes[0, 4], centers_fig[4])
 
         # Plot the most dissimilar poses
-        plot_poses(axes[1, 0], pairs[0][0], color="r")
-        plot_poses(axes[1, 0], pairs[0][1], color="b")
-        plot_poses(axes[1, 1], pairs[1][0], color="r")
-        plot_poses(axes[1, 1], pairs[1][1], color="b")
-        plot_poses(axes[1, 2], pairs[2][0], color="r")
-        plot_poses(axes[1, 2], pairs[2][1], color="b")
-        plot_poses(axes[1, 3], pairs[3][0], color="r")
-        plot_poses(axes[1, 3], pairs[3][1], color="b")
-        plot_poses(axes[1, 4], pairs[4][0], color="r")
-        plot_poses(axes[1, 4], pairs[4][1], color="b")
+        plot_poses(axes[1, 0], pairs[labels_fig[0]][0], color="r")
+        plot_poses(axes[1, 0], pairs[labels_fig[0]][1], color="b")
+        plot_poses(axes[1, 1], pairs[labels_fig[1]][0], color="r")
+        plot_poses(axes[1, 1], pairs[labels_fig[1]][1], color="b")
+        plot_poses(axes[1, 2], pairs[labels_fig[2]][0], color="r")
+        plot_poses(axes[1, 2], pairs[labels_fig[2]][1], color="b")
+        plot_poses(axes[1, 3], pairs[labels_fig[3]][0], color="r")
+        plot_poses(axes[1, 3], pairs[labels_fig[3]][1], color="b")
+        plot_poses(axes[1, 4], pairs[labels_fig[4]][0], color="r")
+        plot_poses(axes[1, 4], pairs[labels_fig[4]][1], color="b")
 
         # Plot the variance per joint
-        plot_poses(axes[2, 0], centers_fig[0], variances[labels_fig[0]], cmap="viridis")
-        plot_poses(axes[2, 1], centers_fig[1], variances[labels_fig[1]], cmap="viridis")
-        plot_poses(axes[2, 2], centers_fig[2], variances[labels_fig[2]], cmap="viridis")
-        plot_poses(axes[2, 3], centers_fig[3], variances[labels_fig[3]], cmap="viridis")
-        plot_poses(axes[2, 4], centers_fig[4], variances[labels_fig[4]], cmap="viridis")
+        plot_poses(axes[2, 0], centers_fig[0], color="k", c=variances[labels_fig[0]], cmap="hot")
+        plot_poses(axes[2, 1], centers_fig[1], color="k", c=variances[labels_fig[1]], cmap="hot")
+        plot_poses(axes[2, 2], centers_fig[2], color="k", c=variances[labels_fig[2]], cmap="hot")
+        plot_poses(axes[2, 3], centers_fig[3], color="k", c=variances[labels_fig[3]], cmap="hot")
+        plot_poses(axes[2, 4], centers_fig[4], color="k", c=variances[labels_fig[4]], cmap="hot")
 
         # Save the plot
         plt.savefig(os.path.join(args.save_dir, f"{i:02}.png"))
@@ -128,12 +134,16 @@ if __name__ == "__main__":
         # Create lines for edges in each subplot
         lines_centroids = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat[:5]]
         lines_max = [[ax.plot([], [], [], markersize=2)[0] for _ in range(2 * len(SKELETON))] for ax in axes.flat[5:10]]
-        lines_var = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat[10:]]
-        lines = lines_centroids + lines_max + lines_var
+        # lines_var = [[ax.plot([], [], [], markersize=2)[0] for _ in range(len(SKELETON))] for ax in axes.flat[10:]]
+        lines = lines_centroids + lines_max  # + lines_var
 
         # Create the animation
         ani = FuncAnimation(
-            fig, update_plot, frames=np.arange(0, 360, 2), fargs=(axes, lines, centers_fig, SKELETON), interval=50
+            fig,
+            update_plot,
+            frames=np.arange(0, 360, 2),
+            fargs=(axes, lines, centers_fig, pairs, variances, SKELETON),
+            interval=50,
         )
 
         # Save the animation as a video file
