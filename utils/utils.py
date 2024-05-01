@@ -81,9 +81,9 @@ def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
         del frames
 
 
-def plot_poses(ax, pose, color=None, c=None, cmap=None, colorbar=False, fig=None):
+def plot_poses(ax, pose, color=None, c=None, cmap=None, title=None):
     for joint in SKELETON:
-        img = ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2], c=c, cmap=cmap)
+        ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2], c=c, cmap=cmap)
         ax.plot(
             [pose[joint[0], 0], pose[joint[1], 0]],
             [pose[joint[0], 1], pose[joint[1], 1]],
@@ -91,11 +91,40 @@ def plot_poses(ax, pose, color=None, c=None, cmap=None, colorbar=False, fig=None
             color=color,
         )
         ax.view_init(azim=80)
+        ax.set_title(title)
 
-        # Only used for plotting the variances per joint
-        # if colorbar:
-        #     assert fig is not None, "fig must be provided when colorbar is True"
-        #     fig.colorbar(img)
+
+def get_extreme_samples(samples, mode="distant", viz=False):
+    """
+    Return the most dissimilar samples based on Euclidian distance
+
+    :param samples: all data points
+    :param mode: "distant" or "close"
+    """
+    similarity = squareform(pdist(samples))
+
+    # Avoid taking the diagonal samples
+    if mode == "close":
+        np.fill_diagonal(similarity, np.inf)
+    idx = np.argmax(similarity) if mode == "distant" else np.argmin(similarity)
+
+    N = len(samples)
+    row = idx // N
+    col = idx % N
+
+    k0, k1 = samples[row], samples[col]
+    # If samples are to be visualized, apply reshape and rotation
+    if viz:
+        k0 = k0.reshape(17, 3)
+        k1 = k1.reshape(17, 3)
+
+        k0 -= k0[0]
+        k1 -= k1[0]
+
+        k0 = k0 @ Rx.T @ Ry.T @ Rz.T
+        k1 = k1 @ Rx.T @ Ry.T @ Rz.T
+
+    return k0, k1
 
 
 def max_distance_pairs(samples, labels, filter=None, viz=False):
@@ -120,24 +149,7 @@ def max_distance_pairs(samples, labels, filter=None, viz=False):
     pairs = {}
     for k in clasification.keys():
         samples = clasification[k]
-        # similarity = squareform(pdist(samples))
-        # Get the pair of poses which differ the most inside of the cluster
-        # idx = np.argmax(similarity)
-        idx = 20
-        N_k = len(samples)
-        row = idx // N_k
-        col = idx % N_k
-
-        k0 = samples[row].reshape(17, 3)
-        k1 = samples[col].reshape(17, 3)
-
-        if viz:
-            k0 -= k0[0]
-            k1 -= k1[0]
-
-            k0 = k0 @ Rx.T @ Ry.T @ Rz.T
-            k1 = k1 @ Rx.T @ Ry.T @ Rz.T
-
+        k0, k1 = get_extreme_samples(samples, mode="distant", viz=True)
         pairs[k] = (k0, k1)
 
     return pairs
