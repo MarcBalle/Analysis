@@ -71,6 +71,7 @@ class GMM:
             gmm = GaussianMixture(n_components=k).fit(x)
             means = gmm.means_
             labels = gmm.predict(x)
+            prob = gmm.predict_proba(x)
 
             if self.save_frames:
                 frames_to_labels(
@@ -79,6 +80,7 @@ class GMM:
 
             np.savez(os.path.join(out_subdir, "means"), means)
             np.savez(os.path.join(out_subdir, "labels"), labels)
+            np.savez(os.path.join(out_subdir, "component_probs"), prob)
 
 
 class DBSCAN_:
