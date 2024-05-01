@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, writers
 
-from utils import plot_poses, max_distance_pairs, variance_per_joint, SKELETON, Rx, Ry, Rz
+from utils import plot_poses, max_distance_pairs, variance_per_joint, get_extreme_samples, SKELETON, Rx, Ry, Rz
 
 
 def update_plot(num, axes, lines, centroids, pairs, variances, skeleton):
@@ -74,6 +74,18 @@ if __name__ == "__main__":
 
     n_centers = centers.shape[0]
     assert n_centers <= args.num_figures * args.centers_fig, "Not all center are going to be displayed"
+
+    # Get most distant and closest centroids
+    d0, d1 = get_extreme_samples(centers.reshape((-1, 17 * 3)), mode="distant", viz=True)
+    c0, c1 = get_extreme_samples(centers.reshape((-1, 17 * 3)), mode="close", viz=True)
+
+    # Plot the most distant and closest centroids
+    fig, axes = plt.subplots(1, 2, figsize=(30, 10), subplot_kw={"projection": "3d"})
+    plot_poses(axes[0], d0, color="y", title="Most distant centroids")
+    plot_poses(axes[0], d1, color="g", title="Most distant centroids")
+    plot_poses(axes[1], c0, color="y", title="Closest centroids")
+    plot_poses(axes[1], c1, color="g", title="Closest centroids")
+    plt.savefig(os.path.join(args.save_dir, "extreme.png"))
 
     # Pad the center with 0s to fill the last figure
     if n_centers < args.num_figures * args.centers_fig:
