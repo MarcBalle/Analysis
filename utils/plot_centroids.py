@@ -86,6 +86,7 @@ if __name__ == "__main__":
     plot_poses(axes[1], c0, color="y", title="Closest centroids")
     plot_poses(axes[1], c1, color="g", title="Closest centroids")
     plt.savefig(os.path.join(args.save_dir, "extreme.png"))
+    plt.close()
 
     # Pad the center with 0s to fill the last figure
     if n_centers < args.num_figures * args.centers_fig:
@@ -160,3 +161,5 @@ if __name__ == "__main__":
 
         # Save the animation as a video file
         ani.save(os.path.join(args.save_dir, f"{i:02}.mp4"), writer=writer)
+
+        plt.close()
