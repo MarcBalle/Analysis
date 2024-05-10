@@ -6,6 +6,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, writers
+from mpl_toolkits.mplot3d import Axes3D
 
 from utils import plot_poses, max_distance_pairs, variance_per_joint, get_extreme_samples, SKELETON, Rx, Ry, Rz
 
