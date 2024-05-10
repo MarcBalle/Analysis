@@ -65,7 +65,7 @@ if __name__ == "__main__":
     metadata = get_video_metadata(args.video)
     fps, video_length, width, height = metadata["fps"], metadata["video_length"], metadata["width"], metadata["height"]
     out = cv2.VideoWriter(
-        filename=os.path.join(args.output, "test_tsne_" + video_name),
+        filename=os.path.join(args.output, "tsne_" + video_name),
         fourcc=cv2.VideoWriter_fourcc(*"DIVX"),
         fps=fps,
         frameSize=(width, height),
