@@ -218,8 +218,11 @@ def max_distance_pairs(samples, labels, filter=None, viz=False):
     pairs = {}
     for k in clasification.keys():
         samples = clasification[k]
-        k0, k1 = get_extreme_samples(samples, mode="distant", viz=True)
-        pairs[k] = (k0, k1)
+        if samples:  # If there are samples for the class
+            k0, k1 = get_extreme_samples(samples, mode="distant", viz=True)
+            pairs[k] = (k0, k1)
+        else:
+            pairs[k] = (np.zeros((17, 3)), np.zeros((17, 3)))
 
     return pairs
 
@@ -244,14 +247,17 @@ def variance_per_joint(samples, labels, filter=None):
     covariances_per_class = {}
     for k in clasification.keys():
         kpts = clasification[k]
-        covs = []
-        for i in range(17):
-            joint = np.array([kpt.reshape(17, 3)[i] for kpt in kpts])
+        if kpts:  # If there are samples for the class
+            covs = []
+            for i in range(17):
+                joint = np.array([kpt.reshape(17, 3)[i] for kpt in kpts])
 
-            # Compute determinant of covariance matrix as a measure of general variance
-            cov_det = np.linalg.det(np.cov(joint, rowvar=False))
-            covs.append(cov_det)
+                # Compute determinant of covariance matrix as a measure of general variance
+                cov_det = np.linalg.det(np.cov(joint, rowvar=False))
+                covs.append(cov_det)
 
-        covariances_per_class[k] = covs
+            covariances_per_class[k] = covs
+        else:
+            covariances_per_class[k] = [0] * 17
 
     return covariances_per_class
