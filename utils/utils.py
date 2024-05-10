@@ -32,25 +32,72 @@ Ry = np.array([[np.cos(angle_y), 0, np.sin(angle_y)], [0, 1, 0], [-np.sin(angle_
 Rz = np.array([[np.cos(angle_z), -np.sin(angle_z), 0], [np.sin(angle_z), np.cos(angle_z), 0], [0, 0, 1]])
 
 
-def video_to_frames(video, percentage=1.0):
-    """Read video into its frames"""
-    cap = cv2.VideoCapture(video)
-    video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    n = int(video_length * percentage)
-    frame_idxs = np.random.randint(0, video_length - 1, (n,))
+def get_video_metadata(video):
+    """
+    Retrieves metadata information from a video file.
 
+    Parameters:
+    - video (str): The path to the video file.
+
+    Returns:
+    - dict: A dictionary containing the following metadata information:
+        - 'fps': Frames per second of the video.
+        - 'video_length': Total number of frames in the video.
+        - 'width': Width of the video frames.
+        - 'height': Height of the video frames.
+    """
+    cap = cv2.VideoCapture(video)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap.release()
+    cv2.destroyAllWindows()
+
+    return {"fps": fps, "video_length": video_length, "width": width, "height": height}
+
+
+def video_to_frames(video, percentage=1.0, random=True):
+    """
+    Extracts frames from a video file and returns a list of frames.
+
+    Parameters:
+    - video (str): The path to the video file.
+    - percentage (float): The percentage of frames to extract from the video. Default is 1.0 (all frames).
+    - random (bool): Whether to extract frames randomly or sequentially. Default is True.
+
+    Returns:
+    - frames (list): A list of frames extracted from the video.
+
+    If the `percentage` parameter is less than 1.0, a subset of frames will be extracted based on the percentage.
+    If `random` is True, the frames will be randomly selected. Otherwise, the frames will be selected sequentially.
+    The function uses OpenCV to read the video file and extract frames.
+
+    Note: Make sure to have OpenCV installed in your environment before using this function.
+    """
+
+    cap = cv2.VideoCapture(video)
     frames = []
 
-    # TODO: this approach might be ways slower than simply while cap.isOpened() and read all
-    for f in frame_idxs:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, f)
-        _, img = cap.read()
-        frames.append(img)
+    while cap.isOpened():
+        ret, img = cap.read()
+        if ret:
+            # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            frames.append(img)
+        else:
+            break
 
     cap.release()
     cv2.destroyAllWindows()
 
-    return frames, frame_idxs
+    if percentage < 1.0:
+        video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        n = int(video_length * percentage)
+        frame_idxs = np.random.randint(0, video_length - 1, (n,)) if random else np.arange(0, n)
+        frames = frames[frame_idxs]
+
+        return frames, frame_idxs
+    return frames
 
 
 def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
@@ -81,9 +128,26 @@ def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
         del frames
 
 
-def plot_poses(ax, pose, color=None, c=None, cmap=None, title=None):
+def plot_poses(ax, pose, color=None, c=None, cmap=None, title=None, ticks=False, s=5):
+    """
+    Plots 3D poses on a given axis.
+
+    Parameters:
+    - ax (matplotlib.axes.Axes): The axis on which to plot the poses.
+    - pose (numpy.ndarray): The 3D pose data to be plotted.
+    - color (str): The color of the pose points and lines. Default is None.
+    - c (array-like): The color values for the pose points. Default is None.
+    - cmap (str or matplotlib.colors.Colormap): The colormap for the pose points. Default is None.
+    - title (str): The title of the plot. Default is None.
+    - ticks (bool): Whether to display ticks on the plot. Default is True.
+    - s (float): The size of the pose points. Default is 5.
+
+    Returns:
+    None
+    """
+
     for joint in SKELETON:
-        ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2], c=c, cmap=cmap)
+        ax.scatter(pose[:, 0], pose[:, 1], pose[:, 2], c=c, cmap=cmap, s=s)
         ax.plot(
             [pose[joint[0], 0], pose[joint[1], 0]],
             [pose[joint[0], 1], pose[joint[1], 1]],
@@ -92,6 +156,11 @@ def plot_poses(ax, pose, color=None, c=None, cmap=None, title=None):
         )
         ax.view_init(azim=80)
         ax.set_title(title)
+
+        if not ticks:
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_zticks([])
 
 
 def get_extreme_samples(samples, mode="distant", viz=False):

@@ -19,11 +19,11 @@
             "console": "integratedTerminal",
             "args": [
                 "--root",
-                "Z:\\workfiles\\ballesanchezmarc\\data\\driveact",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data",
                 "--output",
-                ".\\output\\cluster_images\\all_frames",
-                "--k",
-                "25"
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data",
+                "--method",
+                "gmm"
             ]
         },
         {
@@ -34,13 +34,17 @@
             "console": "integratedTerminal",
             "args": [
                 "--centroids",
-                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\25centers_kmeans.npz",
-                "--labels",
-                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\25centers_kmeans_labels.npz",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\31\\cluster_centers.npz",
                 "--num_figures",
+                "7",
+                "--centers_fig",
                 "5",
                 "--save_dir",
-                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\output\\cluster_images"
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\31",
+                "--kpts",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\samples.npz",
+                "--labels",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\31\\labels.npz",
             ]
         },
         {
@@ -71,6 +75,70 @@
                 "648",
                 "--out_name",
                 "eating00"
+            ]
+        },
+        {
+            "name": "Max distanced samples",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/max_within_cluster.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--kpts",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\samples.npz",
+                "--centers",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\31\\cluster_centers.npz",
+                "--labels",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\31\\labels.npz",
+                "--output",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\31",
+            ]
+        },
+        {
+            "name": "k distance plot",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/k_distance_plot.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--kpts",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\keypoints"
+            ]
+        },
+        {
+            "name": "tsne",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tsne_embedding.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--keypoints",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\68\\cluster_centers.npz",
+                "--output",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\68\\tsne",
+            ]
+        },
+        {
+            "name": "video cluster assignments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/create_video_cluster_assignments.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--video",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\run1b_2018-05-29-14-02-47.kinect_color.mp4",
+                "--centroids",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\68\\cluster_centers.npz",
+                "--keypoints",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\samples.npz",
+                "--labels",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\68\\labels.npz",
+                "--keypoints_to_video",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\keypoints_to_video_short_names.pkl",
+                "--tsne",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\68\\tsne\\tsne_40.npz",
+                "--output",
+                "C:\\Users\\marcw\\master_thesis\\forked\\Analysis\\data\\kmeans\\68\\video_cluster_assignments",
             ]
         }
     ]
