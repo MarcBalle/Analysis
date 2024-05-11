@@ -82,10 +82,10 @@ if __name__ == "__main__":
 
     # Plot the most distant and closest centroids
     fig, axes = plt.subplots(1, 2, figsize=(30, 10), subplot_kw={"projection": "3d"})
-    plot_poses(axes[0], d0, color="y", title="Most distant centroids")
-    plot_poses(axes[0], d1, color="g", title="Most distant centroids")
-    plot_poses(axes[1], c0, color="y", title="Closest centroids")
-    plot_poses(axes[1], c1, color="g", title="Closest centroids")
+    plot_poses(axes[0], d0, color="y", title="Most distant centroids", s=10)
+    plot_poses(axes[0], d1, color="g", title="Most distant centroids", s=10)
+    plot_poses(axes[1], c0, color="y", title="Closest centroids", s=10)
+    plot_poses(axes[1], c1, color="g", title="Closest centroids", s=10)
     plt.savefig(os.path.join(args.save_dir, "extreme.png"))
     plt.close()
 
