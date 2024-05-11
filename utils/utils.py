@@ -128,7 +128,7 @@ def frames_to_labels(video_indices, labels, output_path, percentage=0.8):
         del frames
 
 
-def plot_poses(ax, pose, color=None, c=None, cmap=None, title=None, ticks=False, s=5):
+def plot_poses(ax, pose, color=None, c=None, cmap=None, title=None, ticks=False, s=7):
     """
     Plots 3D poses on a given axis.
 
