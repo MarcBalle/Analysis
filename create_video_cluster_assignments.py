@@ -14,6 +14,7 @@ import cv2
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from mpl_toolkits.mplot3d import Axes3D
 
 from utils.utils import video_to_frames, get_video_metadata, plot_poses, Rx, Ry, Rz
 
