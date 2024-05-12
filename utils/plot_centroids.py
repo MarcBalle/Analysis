@@ -82,10 +82,10 @@ if __name__ == "__main__":
 
     # Plot the most distant and closest centroids
     fig, axes = plt.subplots(1, 2, figsize=(30, 10), subplot_kw={"projection": "3d"})
-    plot_poses(axes[0], d0, color="y", title="Most distant centroids", s=25)
-    plot_poses(axes[0], d1, color="g", title="Most distant centroids", s=25)
-    plot_poses(axes[1], c0, color="y", title="Closest centroids", s=25)
-    plot_poses(axes[1], c1, color="g", title="Closest centroids", s=25)
+    plot_poses(axes[0], d0, color="y", title="Most distant centroids", s=35)
+    plot_poses(axes[0], d1, color="g", title="Most distant centroids", s=35)
+    plot_poses(axes[1], c0, color="y", title="Closest centroids", s=35)
+    plot_poses(axes[1], c1, color="g", title="Closest centroids", s=35)
     plt.savefig(os.path.join(args.save_dir, "extreme.png"))
     plt.close()
 
@@ -136,11 +136,11 @@ if __name__ == "__main__":
         plot_poses(axes[1, 4], pairs[labels_fig[4]][1], color="b")
 
         # Plot the variance per joint
-        plot_poses(axes[2, 0], centers_fig[0], color="k", c=variances[labels_fig[0]], cmap="hot", s=25)
-        plot_poses(axes[2, 1], centers_fig[1], color="k", c=variances[labels_fig[1]], cmap="hot", s=25)
-        plot_poses(axes[2, 2], centers_fig[2], color="k", c=variances[labels_fig[2]], cmap="hot", s=25)
-        plot_poses(axes[2, 3], centers_fig[3], color="k", c=variances[labels_fig[3]], cmap="hot", s=25)
-        plot_poses(axes[2, 4], centers_fig[4], color="k", c=variances[labels_fig[4]], cmap="hot", s=25)
+        plot_poses(axes[2, 0], centers_fig[0], color="k", c=variances[labels_fig[0]], cmap="hot", s=35)
+        plot_poses(axes[2, 1], centers_fig[1], color="k", c=variances[labels_fig[1]], cmap="hot", s=35)
+        plot_poses(axes[2, 2], centers_fig[2], color="k", c=variances[labels_fig[2]], cmap="hot", s=35)
+        plot_poses(axes[2, 3], centers_fig[3], color="k", c=variances[labels_fig[3]], cmap="hot", s=35)
+        plot_poses(axes[2, 4], centers_fig[4], color="k", c=variances[labels_fig[4]], cmap="hot", s=35)
 
         # Save the plot
         plt.savefig(os.path.join(args.save_dir, f"{i:02}.png"))
