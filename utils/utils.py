@@ -3,6 +3,10 @@ import os
 import cv2
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from mpl_toolkits.mplot3d import Axes3D
 
 SKELETON = [
     [0, 1],
@@ -23,6 +27,21 @@ SKELETON = [
     [15, 16],
 ]
 
+UPPER_BODY_SKELETON = [
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [3, 4],
+    [4, 5],
+    [5, 6],
+    [4, 7],
+    [7, 8],
+    [8, 9],
+    [4, 10],
+    [10, 11],
+    [11, 12],
+]
+
 angle_x = 60 * (np.pi / 180)
 angle_y = 180 * (np.pi / 180)
 angle_z = -30 * (np.pi / 180)
@@ -30,6 +49,114 @@ angle_z = -30 * (np.pi / 180)
 Rx = np.array([[1, 0, 0], [0, np.cos(angle_x), -np.sin(angle_x)], [0, np.sin(angle_x), np.cos(angle_x)]])
 Ry = np.array([[np.cos(angle_y), 0, np.sin(angle_y)], [0, 1, 0], [-np.sin(angle_y), 0, np.cos(angle_y)]])
 Rz = np.array([[np.cos(angle_z), -np.sin(angle_z), 0], [np.sin(angle_z), np.cos(angle_z), 0], [0, 0, 1]])
+
+
+def show2Dpose(img, kps, radius=4):
+    """
+    Draws 2D pose keypoints on an image.
+
+    Args:
+        kps (numpy.ndarray): Array of shape (N, 2) representing the 2D keypoints.
+        img (numpy.ndarray): The image on which to draw the keypoints.
+        radius (int, optional): The radius of the keypoints. Defaults to 4.
+
+    Returns:
+        numpy.ndarray: The image with the keypoints drawn.
+
+    """
+    if kps.size == 0:
+        return img
+
+    LR = np.array([0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0], dtype=bool)
+
+    lcolor = (255, 0, 0)
+    rcolor = (0, 0, 255)
+    thickness = 3
+
+    for j, c in enumerate(SKELETON):
+        start = map(int, kps[c[0]])
+        end = map(int, kps[c[1]])
+        start = list(start)
+        end = list(end)
+        cv2.line(img, (start[0], start[1]), (end[0], end[1]), lcolor if LR[j] else rcolor, thickness)
+        cv2.circle(img, (start[0], start[1]), thickness=-1, color=(0, 255, 0), radius=radius)
+        cv2.circle(img, (end[0], end[1]), thickness=-1, color=(0, 255, 0), radius=radius)
+
+    return img
+
+
+def show3Dpose(img, kps, plot_w, plot_h, img_w):
+    """
+    Superimposes 3D pose keypoints on a video frame.
+
+    Args:
+        kps (numpy.ndarray): Array of shape (N, 3) representing the 3D keypoints.
+        img (numpy.ndarray): The video frame on which to superimpose the keypoints.
+        w (int): Width of the video frame.
+        h (int): Height of the video frame.
+
+    Returns:
+        numpy.ndarray: The video frame with the 3D keypoints superimposed.
+
+    """
+
+    matplotlib.use("Agg")
+
+    plt.ioff()
+    fig, ax = plt.subplots(1, 1, figsize=(plot_w / 100, plot_h / 100), dpi=100, subplot_kw={"projection": "3d"})
+
+    canvas = FigureCanvas(fig)
+
+    kps -= kps[0]
+    kps = kps @ Rx.T @ Ry.T @ Rz.T
+
+    plot_poses(ax, kps, s=2)
+
+    canvas.draw()
+
+    pose_img = np.frombuffer(canvas.tostring_rgb(), dtype="uint8").reshape(plot_h, plot_w, -1)
+
+    pose_img = cv2.cvtColor(pose_img, cv2.COLOR_RGB2BGR)
+
+    # Superimpose the matplotlib figure on the video frame
+    img[:plot_h, img_w - plot_w :] = pose_img
+
+    del fig, ax, canvas
+
+    return img
+
+
+def get_upper_body(kpts):
+    """
+    Extracts the upper body keypoints from the full keypoints array.
+
+    Args:
+        kpts (numpy.ndarray): Array of shape (N, 17, n_dim) representing the keypoints.
+
+    Returns:
+        numpy.ndarray: The upper body keypoints array of shape (N, 8, n_dim).
+
+    """
+    N = kpts.shape[0]
+    n_dim = kpts.shape[2]
+    upper_body = np.zeros((N, 13, n_dim))
+
+    for i in range(N):
+        upper_body[i, 0] = kpts[i, 0]  # Hip (root joint)
+        upper_body[i, 1] = kpts[i, 1]  # Right hip
+        upper_body[i, 2] = kpts[i, 4]  # Left hip
+        upper_body[i, 3] = kpts[i, 7]  # Spine
+        upper_body[i, 4] = kpts[i, 8]  # Neck
+        upper_body[i, 5] = kpts[i, 9]  # Nose
+        upper_body[i, 6] = kpts[i, 10]  # Head
+        upper_body[i, 7] = kpts[i, 11]  # Left shoulder
+        upper_body[i, 8] = kpts[i, 12]  # Left elbow
+        upper_body[i, 9] = kpts[i, 13]  # Left wrist
+        upper_body[i, 10] = kpts[i, 14]  # Right shoulder
+        upper_body[i, 11] = kpts[i, 15]  # Right elbow
+        upper_body[i, 12] = kpts[i, 16]  # Right wrist
+
+    return upper_body
 
 
 def get_video_metadata(video):
